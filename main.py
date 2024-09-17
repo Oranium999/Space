@@ -1,12 +1,15 @@
 import numpy as np
 import turtle
 
+from scipy.spatial.transform import Rotation as R
+
 class astr():
-    def __init__(self, _mass, _vectRotation, _p, _e = 0.0001) -> None:
+    def __init__(self, _mass, _xyz, _p, _e = 0, _parent=None) -> None:
         self.mass = _mass
-        self.vect=_vectRotation
+        self.xyz=_xyz
         self.e = _e 
         self.p = _p
+        self.parent = _parent
 
     def period(self, p):
         a = (60216.8-87.969)/(4498400000-57909050) # y/x
@@ -67,7 +70,14 @@ class astr():
         speed = np.sqrt(pow(pos1[0]-pos2[0],2)+pow(pos1[1]-pos2[1],2))
         return speed
 
-        
+    def get_pos_3d(self, t):
+        local_x, local_y = self.get_pos(t)
+        local_z = 0
+
+        rotMatrix = R.from_euler('xyz', self.xyz, degrees=True).as_matrix()
+        local_coord = np.array([local_x, local_y, local_z])
+        coord = np.matmul(local_coord, rotMatrix)
+        return coord
 
 
 terre = astr(10, (0,0,1), 100, 0.0009)
