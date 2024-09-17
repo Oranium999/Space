@@ -50,10 +50,8 @@ class astr():
         for i in range (100):
             un1 = self.e*np.sin(un)+m
             diff = abs(un-un1)
-            # print("diff= ",diff,"un= ",un,"un1= ",un1)
             if diff<0.001:
                 u = un1
-                # print("break")
                 break
             un = un1
         return u
@@ -61,7 +59,6 @@ class astr():
     def get_anomalie_vrai(self, t):
         u = self.get_anomalie_ex(t)
         v = 2*np.arctan(np.sqrt((1+self.e)/(1-self.e))*np.tan(u/2))
-        # print ("v= ",v)
         return v
     
     def get_speed(self,t1,t2):
