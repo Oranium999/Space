@@ -66,7 +66,7 @@ class astr():
         
 
     def get_pos_3d(self, t):
-        local_x, local_y = self.get_pos_2d(t)
+        local_x, local_y = self.get_pos(t)
         local_z = 0
 
         rotMatrix = R.from_euler('xyz', self.xyz, degrees=True).as_matrix()
