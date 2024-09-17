@@ -58,14 +58,21 @@ class astr():
     def get_anomalie_vrai(self, t):
         u = self.get_anomalie_ex(t)
         v = 2*np.arctan(np.sqrt((1+self.e)/(1-self.e))*np.tan(u/2))
-        print ("v= ",v)
+        # print ("v= ",v)
         return v
-        
+    
+    def get_speed(self,t1,t2):
+        pos1 = terre.get_pos(t1)
+        pos2 = terre.get_pos(t2)
+        speed = np.sqrt(pow(pos1[0]-pos2[0],2)+pow(pos1[1]-pos2[1],2))
+        return speed
 
         
 
 
-terre = astr(10, (0,0,1), 100, 0.80)
+terre = astr(10, (0,0,1), 100, 0.0009)
 for i in range(1000):
+    speed = terre.get_speed(i,i+1)
+    print("speed = ",speed)
     turtle.goto(terre.get_pos(i))
     
