@@ -78,11 +78,8 @@ class astr():
         local_x, local_y = self.get_pos(t)
         local_z = 0
         local_coord = np.array([local_x, local_y, local_z])
-
-        rotMatrix = R.from_euler('xyz', self.xyz, degrees=True).as_matrix()
         
-        coord = np.matmul(local_coord, rotMatrix)
-        return coord
+        return local_coord
     
     def get_transforme_matrix(self, t):
         """
@@ -115,15 +112,19 @@ class astr():
         while obj.parent != None:
             rep = np.matmul(rep, obj.get_invers_transforme_matrix(t))
             obj = obj.parent
+        rep = np.matmul(rep, obj.get_invers_transforme_matrix(t))
         return rep
 
 
 soleil = astr("soleil", 200, (0,0,0), 0)
 terre = astr("terre", 30, (0,0,0), 200, 0.5, soleil)
-lune = astr("lune", 6, (0,0,0), 50, 0, terre, period=10)
-turtle.colormode(255)
+lune = astr("lune", 6, (90,0,0), 50, 0, terre, period=10)
+
 astrs = [soleil, terre, lune]
 turtles = []
+turtle.colormode(255)
+#t = int(input("jour début simulation :"))
+t = 0
 for i in astrs:
     newTurtles = turtle.Turtle(shape="circle")
     r = random.randrange(0,257,10)
@@ -131,15 +132,22 @@ for i in astrs:
     b = random.randrange(0,257,10)
     newTurtles.color(r,g,b)
     newTurtles.penup()
-    newTurtles.goto((i.get_global_poition(0).item(0), i.get_global_poition(0).item(1)))
+    newTurtles.goto((i.get_global_poition(t).item(0), i.get_global_poition(t).item(1)))
     newTurtles.pendown()
     turtles.append(newTurtles)
 
-i = 0 
+def find_planet_by_name(name):
+    for planet in astrs:
+        if planet.name == name:
+            return planet
+    raise NameError("noucle not find planet")
+        
+
+
 while True:
-    print("#################"+str(i)+"###############")
+    print("#################"+str(t)+"###############")
     for j, a in enumerate(astrs):
-        pos = a.get_global_poition(i)
+        pos = a.get_global_poition(t)
         turtles[j].goto((pos.item(0), pos.item(1)))
-    ans = input()
-    i += 1
+    #ans = input()
+    t += 1
