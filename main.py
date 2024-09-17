@@ -67,7 +67,13 @@ class astr():
         teta = self.get_anomalie_vrai(t)
         d = self.dist(teta)
         return d*np.cos(teta), d*np.sin(teta)
-        
+    
+    def get_speed(self,t1,t2):
+        pos1 = terre.get_pos(t1)
+        pos2 = terre.get_pos(t2)
+        speed = np.sqrt(pow(pos1[0]-pos2[0],2)+pow(pos1[1]-pos2[1],2))
+        return speed
+
     def get_pos_3d(self, t):
         local_x, local_y = self.get_pos(t)
         local_z = 0
