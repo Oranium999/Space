@@ -3,6 +3,8 @@ import turtle
 import random
 from scipy.spatial.transform import Rotation as R
 
+import tkinter as tk
+
 class astr():
     def __init__(self, name, mass, xyz, p, e = 0, parent=None, period = None) -> None:
         self.name = name
@@ -11,10 +13,10 @@ class astr():
         self.e = e 
         self.p = p
         self.parent = parent
-        self.childe = []
+        self.childes = []
         self.period = period
         if self.parent != None:
-            self.parent.childe.append(self)
+            self.parent.childes.append(self)
         if self.period == None:
             self.period = self.get_period(self.p)
 
@@ -78,7 +80,7 @@ class astr():
         local_x, local_y = self.get_pos(t)
         local_z = 0
         local_coord = np.array([local_x, local_y, local_z])
-        
+
         return local_coord
     
     def get_transforme_matrix(self, t):
@@ -94,8 +96,6 @@ class astr():
                          [rotMatrix.item((2,0)), rotMatrix.item((2,1)), rotMatrix.item((2,2)), 0],
                          [coord[0],coord[1],coord[2],1]])
         
-        
-
         return rep
     
     def get_invers_transforme_matrix(self, t):
@@ -118,36 +118,165 @@ class astr():
 
 soleil = astr("soleil", 200, (0,0,0), 0)
 terre = astr("terre", 30, (0,0,0), 200, 0.5, soleil)
-lune = astr("lune", 6, (90,0,0), 50, 0, terre, period=10)
+lune = astr("lune", 6, (0,0,0), 50, 0.85, terre, period=100)
 
-astrs = [soleil, terre, lune]
+saturn = astr("saturn", 30, (180,0,0), 400, 0, soleil)
+europ = astr("europ", 6, (0,0,0), 50, 0, saturn, period=10)
+
+astrs = [soleil]
+
+def add_children_to_astrs(planet):
+    if len(planet.childes) == 0:
+        return
+    for p in planet.childes:
+        astrs.append(p)
+        add_children_to_astrs(p)
+
+add_children_to_astrs(astrs[0])
+
 turtles = []
-turtle.colormode(255)
-#t = int(input("jour début simulation :"))
-t = 0
-for i in astrs:
-    newTurtles = turtle.Turtle(shape="circle")
-    r = random.randrange(0,257,10)
-    g = random.randrange(0,257,10)
-    b = random.randrange(0,257,10)
-    newTurtles.color(r,g,b)
-    newTurtles.penup()
-    newTurtles.goto((i.get_global_poition(t).item(0), i.get_global_poition(t).item(1)))
-    newTurtles.pendown()
-    turtles.append(newTurtles)
 
 def find_planet_by_name(name):
     for planet in astrs:
         if planet.name == name:
             return planet
     raise NameError("noucle not find planet")
-        
 
+finished_pass_time = True
 
-while True:
-    print("#################"+str(t)+"###############")
+def display_next_day(_):
+    global t, finished_pass_time, sim_is_runing
+    if not finished_pass_time:
+        return
+    finished_pass_time =  False
     for j, a in enumerate(astrs):
         pos = a.get_global_poition(t)
         turtles[j].goto((pos.item(0), pos.item(1)))
-    #ans = input()
+    
     t += 1
+    window.title(str(t))
+    finished_pass_time = True
+    if sim_is_runing:
+        display_next_day(_)
+
+    
+
+import tkinter as tk
+
+
+def keypress(event):
+    global xx, yy, canvas, speed
+    ev = event.keysym
+    if ev == 'Left':
+        xx += speed
+        canvas.place(x=xx, y=yy)
+    elif ev == 'Right':
+        xx -= speed
+        canvas.place(x=xx, y=yy)
+    if ev == 'Up':
+        yy += speed
+        canvas.place(x=xx, y=yy)
+    elif ev == 'Down':
+        yy -= speed
+        canvas.place(x=xx, y=yy)
+
+    
+    return None
+
+Hight, Width = 1000, 1000
+
+# Set the main window
+window = tk.Tk()
+window.geometry(f'{Width}x{Hight}')
+#window.resizable(False, False)
+
+# Create the canvas. Width is larger than window
+canvas = turtle.Canvas(window, width=Width*2, height=Hight*2)
+xx, yy = -Hight/2, -Width/2
+canvas.place(x=xx, y=yy)
+
+def get_a_2digit_randome_hex():
+    rep = hex(random.randrange(0,257,10))[2:]
+    if len(rep) == 1:
+        rep = "0"+rep
+    return rep
+
+t = 0
+for i in astrs:
+    newTurtles = turtle.RawTurtle(canvas=canvas, shape="circle")
+
+    r = get_a_2digit_randome_hex() 
+    g = get_a_2digit_randome_hex()
+    b = get_a_2digit_randome_hex()
+    
+    newTurtles.color("#"+r+g+b)
+    newTurtles.speed(0)
+    newTurtles.penup()
+    pos = i.get_global_poition(t)
+    newTurtles.goto((pos.item(0), pos.item(1)))
+    newTurtles.pendown()
+    turtles.append(newTurtles)
+
+initX, initY = 0, 0
+def motion(event):
+    global initX, initY
+    x, y = event.x, event.y
+    if initX==0 and initY == 0:
+        initX, initY = xx, yy
+    
+    canvas.place(x=initX+x, y=initY+(y))
+    
+def ButtonRelease(_):
+    global initX, initY
+    initX, initY = 0, 0
+
+sim_is_runing = False
+is_space_presed = False
+def spacePresed(_):
+    global is_space_presed, sim_is_runing
+    if is_space_presed == True:
+        return
+    
+    is_space_presed = True
+    sim_is_runing = not(sim_is_runing)
+     
+def spaceRelease(_):
+    global is_space_presed
+    if is_space_presed == False:
+        return
+    is_space_presed = False
+    display_next_day("")
+
+# key binding
+window.bind('<KeyPress-Left>', keypress)
+window.bind('<KeyPress-Right>', keypress)
+window.bind('<KeyPress-Up>', keypress)
+window.bind('<KeyPress-Down>', keypress)
+
+window.bind('<KeyPress-space>', spacePresed)
+window.bind('<KeyRelease-space>', spaceRelease)
+
+window.bind('<ButtonRelease-2>', ButtonRelease)
+window.bind('<ButtonRelease-1>', ButtonRelease)
+window.bind('<ButtonRelease-3>', ButtonRelease)
+
+window.bind('<B2-Motion>', motion)
+window.bind('<B1-Motion>', motion)
+window.bind('<B3-Motion>', motion)
+
+def do_zoom(event):
+    x = canvas.canvasx(event.x)
+    y = canvas.canvasy(event.y)
+    factor = 1.001 ** event.delta
+    canvas.scale(ALL, x, y, factor, factor)
+    
+from tkinter import ALL, EventType
+
+canvas.bind("<MouseWheel>", do_zoom) # WINDOWS ONLY
+canvas.bind('<ButtonPress-1>', lambda event: canvas.scan_mark(event.x, event.y))
+canvas.bind("<B1-Motion>", lambda event: canvas.scan_dragto(event.x, event.y, gain=1))
+
+speed = 10  # scrolling speed
+
+
+window.mainloop()
